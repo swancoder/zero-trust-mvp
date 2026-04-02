@@ -40,6 +40,7 @@ Desktop.ini
 # ── Compiled output ───────────────────────────────────────
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 *.zip
