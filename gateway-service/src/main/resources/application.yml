@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: gateway-service
+
+  # ── Database (JDBC — used exclusively by Flyway for schema migrations) ──
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:zte_db}
+    username: ${DB_USER:zte_user}
+    password: ${DB_PASSWORD:zte_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: flyway-pool
+      maximum-pool-size: 2   # minimal — only for migrations at startup
+
+  # ── Flyway schema migrations ──
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # ── Spring Cloud Gateway: disable default web (use WebFlux) ──
+  main:
+    web-application-type: reactive
+
+  # ── OAuth2 / JWT (Keycloak) ──
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak OIDC discovery endpoint — Gateway validates JWTs locally via JWKS
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/zte}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/zte/protocol/openid-connect/certs}
+
+# ── Actuator ──
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ── Gateway ──
+spring.cloud.gateway:
+  # Disable default route discovery — routes are defined in GatewayRouteConfig
+  discovery:
+    locator:
+      enabled: false
+  # Forward the original Host header to downstream services
+  forwarded-headers-strategy: FRAMEWORK
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# ── Logging ──
+logging:
+  level:
+    root: INFO
+    com.zte: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: INFO
