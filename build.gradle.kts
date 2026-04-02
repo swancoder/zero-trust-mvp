@@ -6,6 +6,12 @@ plugins {
 }
 
 // ---------------------------------------------------------------------------
+// Capture versions at root scope where the catalog IS available
+// ---------------------------------------------------------------------------
+val springCloudVersion: String = libs.versions.springCloud.get()
+val springBootVersion: String  = libs.versions.springBoot.get()
+
+// ---------------------------------------------------------------------------
 // Shared configuration for ALL subprojects
 // ---------------------------------------------------------------------------
 subprojects {
@@ -25,8 +31,8 @@ subprojects {
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:${libs.versions.springCloud.get()}")
-            mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.springBoot.get()}")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
         }
     }
 

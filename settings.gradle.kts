@@ -6,11 +6,8 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
-    versionCatalogs {
-        create("libs") {
-            from(files("gradle/libs.versions.toml"))
-        }
-    }
+    // gradle/libs.versions.toml is auto-discovered as the "libs" catalog in Gradle 7.4+
+    // No explicit versionCatalogs block needed
 }
 
 include(
