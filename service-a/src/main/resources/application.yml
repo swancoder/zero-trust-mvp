@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: service-a
+
+server:
+  port: ${SERVER_PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.zte.servicea: DEBUG

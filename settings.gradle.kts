@@ -12,5 +12,6 @@ dependencyResolutionManagement {
 
 include(
     "gateway-service",
-    "auth-library"
+    "auth-library",
+    "service-a"
 )

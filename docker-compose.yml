@@ -69,6 +69,24 @@ services:
     networks:
       - zte-net
 
+  # ── Service A (demo protected downstream service) ────────
+  service-a:
+    build:
+      context: .
+      dockerfile: service-a/Dockerfile
+    container_name: zte-service-a
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - zte-net
+
 # ── Gateway (optional — uncomment when ready to run via Docker) ──
 #  gateway:
 #    build:

@@ -10,11 +10,14 @@ spring-oauth2-resource    = { module = "org.springframework.boot:spring-boot-sta
 spring-security           = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-actuator           = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-jdbc               = { module = "org.springframework.boot:spring-boot-starter-jdbc" }
+spring-web                = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-r2dbc              = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
 
 # Database
 flyway-core               = { module = "org.flywaydb:flyway-core" }
 flyway-postgres            = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql-driver         = { module = "org.postgresql:postgresql" }
+r2dbc-postgresql          = { module = "org.postgresql:r2dbc-postgresql" }
 
 # Test
 spring-test               = { module = "org.springframework.boot:spring-boot-starter-test" }
