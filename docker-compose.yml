@@ -37,13 +37,19 @@ services:
       - zte-net
 
   # ── Keycloak (dev mode — NOT for production) ─────────────
+  # Realm bootstrap: on first start, Keycloak imports keycloak/realm-export.json
+  # which creates zte-realm, zte-gateway client, ADMIN/USER roles, and zte-admin user.
+  # NOTE: --import-realm skips import if the realm already exists in the DB.
+  #       Run `docker compose down` (not just restart) to get a clean re-import.
+  # NOTE: zte-admin is created without a password. After startup, run:
+  #       ./scripts/set-keycloak-password.sh
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
     container_name: zte-keycloak
     restart: unless-stopped
-    command: start-dev
+    command: start-dev --import-realm
     environment:
-      KC_DB:                     dev-file   # in-memory file DB for dev mode
+      KC_DB:                     dev-file   # H2 file DB — container-local, reset on `down`
       KEYCLOAK_ADMIN:            admin
       KEYCLOAK_ADMIN_PASSWORD:   admin
       KC_HTTP_PORT:              8080
@@ -52,6 +58,8 @@ services:
       KC_LOG_LEVEL:              INFO
     ports:
       - "8180:8080"    # expose on 8180 to avoid conflict with gateway (8080)
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/zte-realm.json:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
       interval: 15s
@@ -78,8 +86,8 @@ services:
 #      DB_NAME:              zte_db
 #      DB_USER:              zte_user
 #      DB_PASSWORD:          zte_pass
-#      KEYCLOAK_ISSUER_URI:  http://keycloak:8080/realms/zte
-#      KEYCLOAK_JWKS_URI:    http://keycloak:8080/realms/zte/protocol/openid-connect/certs
+#      KEYCLOAK_ISSUER_URI:  http://keycloak:8080/realms/zte-realm
+#      KEYCLOAK_JWKS_URI:    http://keycloak:8080/realms/zte-realm/protocol/openid-connect/certs
 #    ports:
 #      - "8080:8080"
 #    networks:

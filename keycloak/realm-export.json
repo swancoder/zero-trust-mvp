@@ -1,0 +1,117 @@
+{
+  "id": "zte-realm",
+  "realm": "zte-realm",
+  "displayName": "ZTE Lightweight",
+  "displayNameHtml": "<b>ZTE</b> Lightweight",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+
+  "_comment_password": "User zte-admin has no credential in this file. Set password after startup: docker exec zte-keycloak /opt/keycloak/bin/kcadm.sh set-password --target-realm zte-realm --username zte-admin --new-password Admin@123! --no-tls-required -- OR run: ./scripts/set-keycloak-password.sh",
+
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "ZTE Administrator — full access to all gateway-protected resources",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "zte-realm"
+      },
+      {
+        "name": "USER",
+        "description": "Standard ZTE user — read-only access to gateway-protected resources",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "zte-realm"
+      }
+    ],
+    "client": {}
+  },
+
+  "clients": [
+    {
+      "clientId": "zte-gateway",
+      "name": "ZTE Gateway",
+      "description": "Confidential OIDC client for the ZTE API Gateway service. Supports authorization code (UI) and client credentials (service-to-service) flows.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "zte-gateway-secret",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://127.0.0.1:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "access.token.lifespan": "300",
+        "use.refresh.tokens": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "username-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "zte-admin",
+      "email": "zte-admin@zte.local",
+      "firstName": "ZTE",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "clientRoles": {}
+    }
+  ]
+}

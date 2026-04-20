@@ -29,8 +29,8 @@ spring:
       resourceserver:
         jwt:
           # Keycloak OIDC discovery endpoint — Gateway validates JWTs locally via JWKS
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/zte}
-          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/zte/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/zte-realm}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/zte-realm/protocol/openid-connect/certs}
 
 # ── Actuator ──
 management:
