@@ -59,7 +59,7 @@ services:
     ports:
       - "8180:8080"    # expose on 8180 to avoid conflict with gateway (8080)
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/zte-realm.json:ro
+      - ./keycloak:/opt/keycloak/data/import:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
       interval: 15s

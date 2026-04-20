@@ -16,8 +16,6 @@
   "ssoSessionMaxLifespan": 36000,
   "offlineSessionIdleTimeout": 2592000,
 
-  "_comment_password": "User zte-admin has no credential in this file. Set password after startup: docker exec zte-keycloak /opt/keycloak/bin/kcadm.sh set-password --target-realm zte-realm --username zte-admin --new-password Admin@123! --no-tls-required -- OR run: ./scripts/set-keycloak-password.sh",
-
   "roles": {
     "realm": [
       {
