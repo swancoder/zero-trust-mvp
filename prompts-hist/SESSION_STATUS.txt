@@ -1,0 +1,99 @@
+SESSION STATUS — ZTE Lightweight
+=================================
+Date:        2026-04-20
+Session ID:  096554fe-4b79-407e-bf18-bf9823b51f57
+Branch:      main
+HEAD commit: 5ce757e  feat: implement DB-based policy enforcement and service-a
+
+================================================================
+SESSION SUMMARY
+================================================================
+
+This session covered Tasks 002 and 003.
+
+--- Task 002: Keycloak Realm Automation ---
+Prompt file: prompts-hist/002_keycloak_automation.txt
+ADR:         docs/adr/ADR-002-identity-provider-configuration-strategy.md
+Commits:     f8d044d (feat), 29a108c (fix)
+
+Key work:
+  - Created keycloak/realm-export.json (zte-realm, zte-gateway client, ADMIN/USER roles, zte-admin user)
+  - Docker Compose: --import-realm flag + directory-level bind mount (file-level mount breaks on WSL2
+    due to inode change on edit → Docker Desktop loses the reference)
+  - scripts/set-keycloak-password.sh: kcadm.sh set-password for zte-admin (Admin@123!)
+  - gateway-service/application.yml: Spring Security OAuth2 resource server → Keycloak JWKS
+  - Verified: token acquisition from zte-realm works
+
+Issues resolved:
+  - Keycloak crash-loop: removed _comment_password field (strict Jackson deserializer)
+  - WSL2 inode issue: switched to directory-level volume mount ./keycloak:/opt/keycloak/data/import:ro
+
+--- Task 003: DB-Based Policy Enforcement + service-a ---
+Prompt file: prompts-hist/003_policy_engine.txt
+ADR:         docs/adr/ADR-003-reactive-policy-engine.md
+Commit:      5ce757e (feat)
+
+Key work:
+  - V2 Flyway migration: access_policies table + seed (ADMIN → /api/v1/service-a/**, GET,POST)
+  - AccessPolicy record, AccessPolicyRepository (R2DBC), PolicyService (Mono.cache 5 min, fail-closed)
+  - ZteAuthorizationFilter: GlobalFilter extracting realm_access.roles, checking DB policy, 403 JSON on deny
+  - service-a module: Spring Boot, GET /api/v1/service-a/hello, port 8081
+  - Gateway route + docker-compose service-a entry
+
+Critical fix (HTTP 500 → 403):
+  Root cause: NettyRoutingFilter was still forwarding to service-a after the filter wrote a 403,
+  because response.setComplete() does NOT suppress Gateway routing.
+  Fix applied:
+    1. Filter order: Ordered.HIGHEST_PRECEDENCE + 100 (runs before routing filters)
+    2. exchange.getAttributes().put(GATEWAY_ALREADY_ROUTED_ATTR, true) in writeForbidden()
+    3. response.writeWith(Mono.just(buffer)) with explicit JSON DataBuffer
+
+Dual-datasource fix:
+  Spring Boot 3.4 does not reliably auto-select JDBC DataSource for Flyway when
+  spring-boot-starter-data-r2dbc is also on the classpath.
+  Fix: explicit spring.flyway.url/user/password in application.yml
+
+================================================================
+VERIFICATION RESULTS (2026-04-20, post-fix)
+================================================================
+
+  Test 1: ADMIN token → GET /api/v1/service-a/hello
+          HTTP 200 — "Hello from Protected Service A — caller: <uuid>" ✅
+
+  Test 2: No token → GET /api/v1/service-a/hello
+          HTTP 401 ✅
+
+  Test 3: USER-role token → GET /api/v1/service-a/hello
+          HTTP 403 — {"error":"Forbidden","message":"No policy grants access to this resource"} ✅
+
+================================================================
+RUNNING SERVICES AT SESSION END
+================================================================
+
+  Gateway   : http://localhost:8080  (PID 7622 — ./gradlew :gateway-service:bootRun)
+  service-a : http://localhost:8081  (./gradlew :service-a:bootRun or Docker)
+  PostgreSQL: localhost:5432         (Docker — zte_db, schema at V2)
+  Keycloak  : http://localhost:8180  (Docker — zte-realm imported)
+
+================================================================
+PENDING — STAGE 4
+================================================================
+
+  004  Request audit logging (request_logs table, V3 migration, RequestAuditFilter)
+  005  Distributed tracing (Micrometer Tracing + Zipkin in Docker Compose)
+  006  auth-library implementation (shared JWT helpers, mTLS)
+  007  Rate limiting (RequestRateLimiter, Redis-backed)
+  008  /admin/policies/refresh actuator endpoint (cache invalidation)
+  009  Integration test suite (@SpringBootTest + Testcontainers)
+  010  service-b second downstream (multi-service policy fan-out proof)
+  011  Docker Compose production profile (resource limits, restart policies)
+  012  ABAC extension (condition column on access_policies, SpEL vs JWT claims)
+
+================================================================
+NEXT STEPS TO RESUME
+================================================================
+
+  1. docker-compose up -d          # ensure PostgreSQL + Keycloak are running
+  2. ./gradlew :gateway-service:bootRun --no-daemon &
+  3. Obtain ADMIN token from zte-realm (see scripts/set-keycloak-password.sh for creds)
+  4. Begin Task 004 (request audit logging) or any Stage 4 item above

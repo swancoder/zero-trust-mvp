@@ -73,3 +73,6 @@ keycloak-data/
 # ── JVM crash logs ────────────────────────────────────────
 hs_err_pid*
 replay_pid*
+
+# ── Claude Code local settings (machine-specific permissions) ──
+.claude/settings.local.json
