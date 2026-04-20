@@ -1,6 +1,6 @@
 spring:
   application:
-    name: service-a
+    name: service-b
   main:
     web-application-type: reactive
 
@@ -8,10 +8,10 @@ spring:
 # Requires a valid client certificate signed by the ZTE CA.
 # Run certs/generate-certs.sh once to generate keystores before starting.
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8082}
   ssl:
     enabled: true
-    key-store: file:${ZTE_CERTS_DIR:./certs}/service-a.p12
+    key-store: file:${ZTE_CERTS_DIR:./certs}/service-b.p12
     key-store-password: ${ZTE_KEY_PASSWORD:zte-pass}
     key-store-type: PKCS12
     # need = reject connections without a valid client cert
@@ -23,7 +23,7 @@ server:
 # ── Separate HTTP management port (no client cert required for health probes) ──
 management:
   server:
-    port: ${MANAGEMENT_PORT:9081}
+    port: ${MANAGEMENT_PORT:9082}
     ssl:
       enabled: false
   endpoints:
@@ -34,16 +34,8 @@ management:
     health:
       show-details: never
 
-# ── mTLS outbound (service-a → service-b) ──────────────────────────────────
-service-b:
-  uri: ${SERVICE_B_URI:https://localhost:8082}
-
+# ── OBO token validation — same secret as the gateway ──────────────────────
 zte:
-  mtls:
-    certs-dir: ${ZTE_CERTS_DIR:./certs}
-    key-password: ${ZTE_KEY_PASSWORD:zte-pass}
-
-  # OBO token validation — same secret as the gateway
   obo:
     secret: ${ZTE_OBO_SECRET:zte-obo-dev-secret-change-in-production}
     expiry-seconds: ${ZTE_OBO_EXPIRY_SECONDS:30}
@@ -51,4 +43,4 @@ zte:
 logging:
   level:
     root: INFO
-    com.zte.servicea: DEBUG
+    com.zte.serviceb: DEBUG

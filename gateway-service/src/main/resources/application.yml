@@ -72,7 +72,21 @@ server:
 
 # ── Downstream services ──
 service-a:
-  uri: ${SERVICE_A_URI:http://localhost:8081}
+  uri: ${SERVICE_A_URI:https://localhost:8081}
+service-b:
+  uri: ${SERVICE_B_URI:https://localhost:8082}
+
+# ── mTLS outbound (gateway → service-a / service-b) ──
+zte:
+  mtls:
+    certs-dir: ${ZTE_CERTS_DIR:./certs}
+    key-password: ${ZTE_KEY_PASSWORD:zte-pass}
+    refresh-interval-ms: 300000   # check keystore file every 5 min; hot-swap if changed
+
+  # ── On-behalf-of token (X-ZTE-User-Context) ──
+  obo:
+    secret: ${ZTE_OBO_SECRET:zte-obo-dev-secret-change-in-production}
+    expiry-seconds: ${ZTE_OBO_EXPIRY_SECONDS:30}
 
 # ── Logging ──
 logging:

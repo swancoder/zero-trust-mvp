@@ -21,6 +21,12 @@ dependencies {
     implementation(libs.spring.r2dbc)
     runtimeOnly(libs.r2dbc.postgresql)
 
+    // mTLS outbound — Netty SslContext (version from Spring Boot BOM)
+    implementation(libs.netty.handler)
+
+    // OBO token creation — JJWT (api on compile path; impl+jackson at runtime via auth-library)
+    implementation(libs.jjwt.api)
+
     // Test
     testImplementation(libs.spring.test)
     testImplementation(libs.spring.security.test)
@@ -28,4 +34,8 @@ dependencies {
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     archiveFileName.set("gateway-service.jar")
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    workingDir = rootProject.projectDir
 }

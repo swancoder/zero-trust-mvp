@@ -10,17 +10,26 @@ import org.springframework.context.annotation.Configuration;
  * Declarative route definitions for the ZTE gateway.
  *
  * <p>All routes are protected by default via {@code com.zte.auth.SecurityConfig}
- * (JWT required) and additionally by {@link com.zte.gateway.filter.ZteAuthorizationFilter}
- * (DB-backed role/path policy check).
+ * (JWT required), {@link com.zte.gateway.filter.ZteAuthorizationFilter}
+ * (DB-backed role/path policy check), and
+ * {@link com.zte.gateway.filter.UserContextPropagationFilter}
+ * (attaches signed X-ZTE-User-Context OBO header).
+ *
+ * <p>Downstream URIs use {@code https://} — service-a and service-b require mTLS.
+ * The gateway presents {@code client.p12} as its client certificate (configured
+ * via {@link MtlsHttpClientConfig}).
  */
 @Configuration
 public class GatewayRouteConfig {
 
     private final String serviceAUri;
+    private final String serviceBUri;
 
     public GatewayRouteConfig(
-            @Value("${service-a.uri:http://localhost:8081}") String serviceAUri) {
+            @Value("${service-a.uri:https://localhost:8081}") String serviceAUri,
+            @Value("${service-b.uri:https://localhost:8082}") String serviceBUri) {
         this.serviceAUri = serviceAUri;
+        this.serviceBUri = serviceBUri;
     }
 
     @Bean
@@ -31,6 +40,11 @@ public class GatewayRouteConfig {
                         .filters(f -> f
                                 .addRequestHeader("X-Gateway-Source", "zte-gateway"))
                         .uri(serviceAUri))
+                .route("service-b", r -> r
+                        .path("/api/v1/service-b/**")
+                        .filters(f -> f
+                                .addRequestHeader("X-Gateway-Source", "zte-gateway"))
+                        .uri(serviceBUri))
                 .build();
     }
 }

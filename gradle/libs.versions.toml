@@ -2,6 +2,8 @@
 springBoot         = "3.4.3"
 springCloud        = "2024.0.1"
 springDependency   = "1.1.7"
+bouncycastle       = "1.79"
+jjwt               = "0.12.6"
 
 [libraries]
 # Spring Boot starters
@@ -11,6 +13,7 @@ spring-security           = { module = "org.springframework.boot:spring-boot-sta
 spring-actuator           = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-jdbc               = { module = "org.springframework.boot:spring-boot-starter-jdbc" }
 spring-web                = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-webflux            = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-r2dbc              = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
 
 # Database
@@ -18,6 +21,18 @@ flyway-core               = { module = "org.flywaydb:flyway-core" }
 flyway-postgres            = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql-driver         = { module = "org.postgresql:postgresql" }
 r2dbc-postgresql          = { module = "org.postgresql:r2dbc-postgresql" }
+
+# Cryptography — BouncyCastle (X.509 cert utilities in auth-library)
+bouncycastle-provider     = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pkix         = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+
+# JWT — JJWT (OBO token creation/validation)
+jjwt-api                  = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl                 = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson              = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# Netty TLS (version managed by Spring Boot BOM)
+netty-handler             = { module = "io.netty:netty-handler" }
 
 # Test
 spring-test               = { module = "org.springframework.boot:spring-boot-starter-test" }
