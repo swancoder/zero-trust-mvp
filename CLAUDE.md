@@ -10,7 +10,7 @@
 2. **Self-Criticism:** Always output a `### CRITIQUE` block after a proposal to identify risks.
 3. **ADR Requirement:** Every structural or architectural decision must be documented in `./docs/adr/ADR-XXX-name.md`.
 4. **Prompt History:** Save every major task prompt into `./prompts-hist/XXX_name.txt`.
-5. **SUMMARY**  Update SUMMARY.md  after each completed task.
+5. **SUMMARY**  Update README.md  after each completed task.
 6. **Git Workflow:** Each completed task must end with a successful test run and a commit to `main`.
 
 
