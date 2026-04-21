@@ -1,0 +1,23 @@
+# ── Integration-test Spring profile ──────────────────────────────────────────
+# Applied when tests run with @ActiveProfiles("it").
+# Disables mTLS cert loading (MtlsHttpClientConfig is @ConditionalOnProperty).
+# All container URLs are injected via @DynamicPropertySource in BaseZteIntegrationTest.
+
+zte:
+  mtls:
+    enabled: false      # skips MtlsHttpClientConfig — no client.p12 needed in tests
+
+# R2DBC pool: keep minimal for tests
+spring:
+  r2dbc:
+    pool:
+      initial-size: 1
+      max-size: 2
+
+# Suppress noisy gateway/security debug logs during tests
+logging:
+  level:
+    root: WARN
+    com.zte: INFO
+    org.springframework.cloud.gateway: WARN
+    org.springframework.security: WARN
