@@ -1,5 +1,6 @@
 package com.zte.gateway.filter;
 
+import com.zte.auth.audit.ZteAuditLogger;
 import com.zte.gateway.policy.PolicyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,9 +80,11 @@ public class ZteAuthorizationFilter implements GlobalFilter, Ordered {
                             .flatMap(allowed -> {
                                 if (allowed) {
                                     log.debug("ZT-ALLOW roles={} method={} path={}", roles, method, path);
+                                    ZteAuditLogger.policyAllow("gateway", roles.toString(), method + " " + path);
                                     return chain.filter(exchange);
                                 }
                                 log.warn("ZT-DENY  roles={} method={} path={}", roles, method, path);
+                                ZteAuditLogger.policyDeny("gateway", roles.toString(), method + " " + path);
                                 return writeForbidden(exchange);
                             });
                 })

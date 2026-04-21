@@ -1,5 +1,6 @@
 package com.zte.serviceb.controller;
 
+import com.zte.auth.audit.ZteAuditLogger;
 import com.zte.auth.obo.UserContextClaims;
 import com.zte.auth.obo.UserContextTokenService;
 import io.jsonwebtoken.JwtException;
@@ -67,6 +68,7 @@ public class UserContextController {
         try {
             UserContextClaims claims = tokenService.validateAndParse(userContext);
             log.debug("OBO token validated: sub={} roles={}", claims.sub(), claims.roles());
+            ZteAuditLogger.oboValidated("service-b", claims.sub(), claims.roles().toString());
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("service",    "service-b");
@@ -80,6 +82,7 @@ public class UserContextController {
 
         } catch (JwtException e) {
             log.warn("Invalid X-ZTE-User-Context from caller={}: {}", callerId, e.getMessage());
+            ZteAuditLogger.oboRejected("service-b", e.getMessage());
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid or expired X-ZTE-User-Context: " + e.getMessage())));
         }
