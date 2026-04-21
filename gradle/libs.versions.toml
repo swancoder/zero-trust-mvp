@@ -4,6 +4,8 @@ springCloud        = "2024.0.1"
 springDependency   = "1.1.7"
 bouncycastle       = "1.79"
 jjwt               = "0.12.6"
+keycloak-testcontainers = "3.3.1"
+wiremock               = "3.0.4"
 
 [libraries]
 # Spring Boot starters
@@ -38,6 +40,11 @@ netty-handler             = { module = "io.netty:netty-handler" }
 spring-test               = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-security-test      = { module = "org.springframework.security:spring-security-test" }
 reactor-test              = { module = "io.projectreactor:reactor-test" }
+testcontainers-junit5     = { module = "org.testcontainers:junit-jupiter" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql" }
+keycloak-testcontainers   = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloak-testcontainers" }
+rest-assured              = { module = "io.rest-assured:rest-assured" }
+wiremock-standalone       = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
 
 [plugins]
 spring-boot               = { id = "org.springframework.boot", version.ref = "springBoot" }
