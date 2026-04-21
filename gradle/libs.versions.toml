@@ -37,6 +37,7 @@ netty-handler             = { module = "io.netty:netty-handler" }
 # Test
 spring-test               = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-security-test      = { module = "org.springframework.security:spring-security-test" }
+reactor-test              = { module = "io.projectreactor:reactor-test" }
 
 [plugins]
 spring-boot               = { id = "org.springframework.boot", version.ref = "springBoot" }

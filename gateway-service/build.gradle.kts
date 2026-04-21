@@ -30,6 +30,7 @@ dependencies {
     // Test
     testImplementation(libs.spring.test)
     testImplementation(libs.spring.security.test)
+    testImplementation(libs.reactor.test)
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {

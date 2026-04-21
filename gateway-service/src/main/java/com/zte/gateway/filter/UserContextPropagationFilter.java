@@ -9,6 +9,7 @@ import org.springframework.core.Ordered;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -65,9 +66,11 @@ public class UserContextPropagationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return ReactiveSecurityContextHolder.getContext()
+                .defaultIfEmpty(new SecurityContextImpl()) // no context → strip headers, pass-through
                 .flatMap(ctx -> {
                     Authentication auth = ctx.getAuthentication();
                     if (!(auth instanceof JwtAuthenticationToken jwtAuth)) {
+                        // Non-JWT / anonymous: still strip incoming headers to prevent injection
                         return chain.filter(stripUserContextHeaders(exchange));
                     }
 
@@ -87,9 +90,7 @@ public class UserContextPropagationFilter implements GlobalFilter, Ordered {
                             .build();
 
                     return chain.filter(mutated);
-                })
-                // No security context → public path; still strip to prevent injection
-                .switchIfEmpty(Mono.defer(() -> chain.filter(stripUserContextHeaders(exchange))));
+                });
     }
 
     private ServerWebExchange stripUserContextHeaders(ServerWebExchange exchange) {

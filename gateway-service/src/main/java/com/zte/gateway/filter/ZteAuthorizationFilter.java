@@ -15,6 +15,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -65,6 +66,7 @@ public class ZteAuthorizationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return ReactiveSecurityContextHolder.getContext()
+                .defaultIfEmpty(new SecurityContextImpl()) // no context → empty ctx → pass-through
                 .flatMap(ctx -> {
                     Authentication auth = ctx.getAuthentication();
                     // Non-JWT auth (anonymous / permit-all) — Spring Security already decided
@@ -87,8 +89,7 @@ public class ZteAuthorizationFilter implements GlobalFilter, Ordered {
                                 ZteAuditLogger.policyDeny("gateway", roles.toString(), method + " " + path);
                                 return writeForbidden(exchange);
                             });
-                })
-                .switchIfEmpty(chain.filter(exchange)); // no security context → public path
+                });
     }
 
     /**
