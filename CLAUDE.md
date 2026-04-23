@@ -68,13 +68,17 @@
 - [x] Verification: ADMIN → 200 ✅ | no token → 401 ✅ | USER → 403 ✅
 - ADR: ADR-003-reactive-policy-engine.md
 
-### Stage 4 — Observability & Hardening `PENDING`
+### Stage 4 — Observability & Hardening `IN PROGRESS`
 - [ ] **004** — Request audit logging: persist gateway requests/responses to DB (`request_logs` table, V3 migration)
 - [ ] **005** — Distributed tracing: Spring Cloud Sleuth / Micrometer Tracing + Zipkin in Docker Compose
 - [ ] **006** — `auth-library` implementation: shared JWT validation helpers, mTLS certificate management
 - [ ] **007** — Rate limiting: Spring Cloud Gateway `RequestRateLimiter` filter (Redis-backed)
 - [ ] **008** — `/admin/policies/refresh` actuator endpoint: force cache invalidation without gateway restart
-- [ ] **009** — Integration test suite: `@SpringBootTest` + Testcontainers (PostgreSQL + Keycloak)
+- [x] **009** — E2E integration test suite: Testcontainers (PostgreSQL + Keycloak) + WireMock for service stubs; 7/7 green
+      - `src/it` source set + `integrationTest` Gradle task; `@ConditionalOnProperty` on `MtlsHttpClientConfig`
+      - WSL2 Docker fix: `api.version=1.45` sys-prop + `testcontainers.properties` strategy pin
+      - `zte-test-user` added to realm export; URL slash bug fixed in `BaseZteIntegrationTest`
+      - ADR: ADR-005-integration-testing-strategy.md
 - [ ] **010** — `service-b` second downstream to prove multi-service policy fan-out
 - [ ] **011** — Docker Compose production profile: resource limits, health-check restart policies
 - [ ] **012** — ABAC extension: `condition` column on `access_policies` (SpEL evaluated against JWT claims)

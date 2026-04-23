@@ -110,6 +110,20 @@
         "ADMIN"
       ],
       "clientRoles": {}
+    },
+    {
+      "username": "zte-test-user",
+      "email": "zte-test-user@zte.local",
+      "firstName": "ZTE",
+      "lastName": "TestUser",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "USER"
+      ],
+      "clientRoles": {}
     }
   ]
 }

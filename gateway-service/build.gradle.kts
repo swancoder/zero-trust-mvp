@@ -77,11 +77,17 @@ tasks.register<Test>("integrationTest") {
     useJUnitPlatform()
     shouldRunAfter("test")
 
-    // Docker Desktop on WSL2 exposes API v1.45+ only on /var/run/docker.sock.
-    // docker-java (used by Testcontainers) defaults to API 1.41 → 400 error.
-    // Explicitly set the version so Testcontainers can connect.
-    environment("DOCKER_HOST",        "unix:///var/run/docker.sock")
-    environment("DOCKER_API_VERSION", "1.45")
+    // Docker Desktop on WSL2 only accepts API ≥ v1.44 on /var/run/docker.sock.
+    // docker-java reads the API version from the JVM system property "docker.api.version"
+    // (not the env var DOCKER_API_VERSION which belongs to the Docker CLI).
+    // EnvironmentAndSystemPropertyClientProviderStrategy is forced via testcontainers.properties
+    // so that docker-java honours the system property (UnixSocketClientProviderStrategy
+    // hardcodes VERSION_1_19 and ignores it).
+    environment("DOCKER_HOST", "unix:///var/run/docker.sock")
+    // "api.version" is the actual property key read by docker-java's shaded
+    // DefaultDockerClientConfig.overrideDockerPropertiesWithSystemProperties().
+    // Also set in BaseZteIntegrationTest static block as belt-and-suspenders.
+    jvmArgs("-Dapi.version=1.45")
 
     // Print test events to console for CI visibility
     testLogging {

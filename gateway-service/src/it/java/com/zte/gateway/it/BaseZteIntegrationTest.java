@@ -13,8 +13,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
@@ -58,6 +56,14 @@ abstract class BaseZteIntegrationTest {
     static final WireMockServer         WIREMOCK;
 
     static {
+        // Docker Desktop on WSL2 only accepts Docker API ≥ v1.44 on /var/run/docker.sock.
+        // Testcontainers uses a shaded copy of docker-java whose DefaultDockerClientConfig
+        // calls overrideDockerPropertiesWithSystemProperties() — the config key is "api.version"
+        // (not "docker.api.version" or "DOCKER_API_VERSION" which is the Docker CLI env var).
+        // Set it before any container constructor is called so it is picked up during the
+        // DockerClientFactory.getOrInitializeStrategy() call that fires inside KeycloakContainer().
+        System.setProperty("api.version", "1.45");
+
         POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
                 .withDatabaseName("zte_db")
                 .withUsername("zte_user")
@@ -94,11 +100,12 @@ abstract class BaseZteIntegrationTest {
         registry.add("spring.r2dbc.username", POSTGRES::getUsername);
         registry.add("spring.r2dbc.password", POSTGRES::getPassword);
 
-        // Keycloak JWT validation — both issuer-uri (for iss claim) and jwk-set-uri
+        // Keycloak JWT validation — both issuer-uri (for iss claim) and jwk-set-uri.
+        // getAuthServerUrl() returns the URL WITHOUT a trailing slash, so we add one.
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
-                () -> KEYCLOAK.getAuthServerUrl() + "realms/zte-realm");
+                () -> KEYCLOAK.getAuthServerUrl() + "/realms/zte-realm");
         registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
-                () -> KEYCLOAK.getAuthServerUrl() + "realms/zte-realm/protocol/openid-connect/certs");
+                () -> KEYCLOAK.getAuthServerUrl() + "/realms/zte-realm/protocol/openid-connect/certs");
 
         // Downstream services → WireMock (HTTP, no mTLS needed in test)
         registry.add("service-a.uri", () -> "http://localhost:" + WIREMOCK.port());
@@ -142,34 +149,28 @@ abstract class BaseZteIntegrationTest {
                 .formParam("client_secret", "zte-gateway-secret")
                 .formParam("username",      username)
                 .formParam("password",      TEST_PASSWORD)
-                .post(KEYCLOAK.getAuthServerUrl() + "realms/zte-realm/protocol/openid-connect/token")
+                .post(KEYCLOAK.getAuthServerUrl() + "/realms/zte-realm/protocol/openid-connect/token")
                 .then().statusCode(200)
                 .extract().path("access_token");
     }
 
     // ── Keycloak provisioning (runs once, in static block) ───────────────────
 
+    /**
+     * Sets passwords for both test users.
+     *
+     * <p>Both users are declared in realm-export.json with empty {@code credentials},
+     * so Keycloak imports them without a password. This method sets a known password
+     * via the Admin API so ROPC token requests can succeed during tests.
+     */
     private static void provisionTestUsers() {
         try (Keycloak admin = KEYCLOAK.getKeycloakAdminClient()) {
             var realm = admin.realm("zte-realm");
 
-            // 1. Set password for zte-admin (imported without credentials)
-            String adminId = realm.users().search(ADMIN_USERNAME).get(0).getId();
-            realm.users().get(adminId).resetPassword(credential(TEST_PASSWORD));
-
-            // 2. Create zte-test-user with USER role only
-            UserRepresentation user = new UserRepresentation();
-            user.setUsername(USER_USERNAME);
-            user.setEmail("zte-test-user@zte.local");
-            user.setEnabled(true);
-            user.setEmailVerified(true);
-
-            var response = realm.users().create(user);
-            String userId = extractId(response.getHeaderString("Location"));
-            realm.users().get(userId).resetPassword(credential(TEST_PASSWORD));
-
-            RoleRepresentation userRole = realm.roles().get("USER").toRepresentation();
-            realm.users().get(userId).roles().realmLevel().add(List.of(userRole));
+            for (String username : List.of(ADMIN_USERNAME, USER_USERNAME)) {
+                String userId = realm.users().search(username).get(0).getId();
+                realm.users().get(userId).resetPassword(credential(TEST_PASSWORD));
+            }
         }
     }
 
@@ -179,10 +180,6 @@ abstract class BaseZteIntegrationTest {
         cred.setValue(password);
         cred.setTemporary(false);
         return cred;
-    }
-
-    private static String extractId(String locationHeader) {
-        return locationHeader.substring(locationHeader.lastIndexOf('/') + 1);
     }
 
     private static String toR2dbcUrl(String jdbcUrl) {
