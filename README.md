@@ -159,4 +159,4 @@ curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/service-a
 | 3 | DB policy engine (R2DBC + Mono.cache), ZteAuthorizationFilter, service-a | `5ce757e` |
 | 4 | mTLS (ReloadableSslContextFactory), OBO delegation, service-b, ZteAuditLogger | `fce58a9` |
 | 5 | Unit tests for filters + auth-library; fix switchIfEmpty double-invocation bug | `22dbe1b` |
-| 6 | E2E integration test suite: Testcontainers (Postgres + Keycloak) + WireMock; 7/7 passing | TBD |
+| 6 | E2E integration test suite: Testcontainers (Postgres + Keycloak) + WireMock; 7/7 passing | `c28fe21` |
